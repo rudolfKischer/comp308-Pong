@@ -320,6 +320,21 @@ void gameLogic(){
 
 void mouse(int x, int y){
     //The paddle is always centered on the mouse
+
+    //move players paddle to y coordinate
+
+    __asm__ __volatile__(
+        "mov %3, %%eax\n" // move the paddle size into register
+        "shr $1, %%eax\n" // divide by paddle size by 2 to get center
+        "mov %1, %%ebx\n" //move the mouse position into register
+        "sub %%eax, %%ebx\n" // subtract paddle size from mouse position to center it
+        "mov %%ebx, %0\n" // Move the value from centered new paddle value into paddle position
+        // %0 -  global.playerPaddlePosition
+        : "=m" (global.playerPaddlePosition.y)
+        // %1 - y   %2 - global.playerPaddlePosition.y  $3 - paddleLength
+        : "m" (y), "m" (global.playerPaddlePosition.y), "m" (paddleLength)
+        : "eax", "ebx" // Clobbered register
+    );
 }
 
 void keyboard(unsigned char key, int x, int y){
