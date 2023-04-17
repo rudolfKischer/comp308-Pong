@@ -103,12 +103,45 @@ void drawBall(){
     glEnd();
 }
 
+void drawRect(float x1, float y1, float x2, float y2, Color color){
+
+    glBegin(GL_TRIANGLE_FAN);
+    glColor3ub(color.r, color.g, color.b);
+    glVertex2f(x1, y1);
+    glVertex2f(x2, y1);
+    glVertex2f(x2, y2);
+    glVertex2f(x1, y1);
+    glVertex2f(x2, y2);
+    glVertex2f(x1, y2);
+    glEnd();
+}
+
 void drawPaddle(){
     //Draws the player paddle and the AI paddle
     //The paddle is a rectangle with a width of paddleWidth and a length of paddleLength
     //Both paddles are white
     //The player paddle is on the right, the AI paddle is on the left
     //The paddles are placed at global.playerPaddlePosition and global.aiPaddlePosition
+
+
+    //player paddle coordinates
+    float px1 = pixelToScreenX(global.playerPaddlePosition.x);
+    float py1 = pixelToScreenY(global.playerPaddlePosition.y);
+    float px2 = pixelToScreenX(global.playerPaddlePosition.x + paddleWidth);
+    float py2 = pixelToScreenY(global.playerPaddlePosition.y + paddleLength);
+
+    //AI paddle coordinates
+    float ax1 = pixelToScreenX(global.aiPaddlePosition.x);
+    float ay1 = pixelToScreenY(global.aiPaddlePosition.y);
+    float ax2 = pixelToScreenX(global.aiPaddlePosition.x + paddleWidth);
+    float ay2 = pixelToScreenY(global.aiPaddlePosition.y + paddleLength);
+
+
+    //draw player
+    drawRect(px1,py1,px2,py2, paddleColor);
+
+    //draw AI
+    drawRect(ax1,ay1,ax2,ay2, paddleColor);
 }
 
 void drawScore(){
