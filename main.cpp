@@ -45,8 +45,10 @@ const int ballSpeedupFactor = 1;
 const int paddleWidth = 40;
 const int paddleLength = 200;
 const int ballSideLength = 30;
-const int initialBallSpeed = 5;
+const int initialBallSpeed = 30;
 const int scorePosition = screenHeight * 0.9;
+const int goalPosition = screenHeight / 2;
+const int goalHeight = screenHeight / 3;
 const Color paddleColor = (Color){255, 255, 255};
 const Point playerScorePosition = (Point){screenWidth - paddleOffset, scorePosition};
 const Point aiScorePosition = (Point){paddleOffset - scoreSize, scorePosition};
@@ -222,6 +224,85 @@ void updateBall(){
     //The ball will also increase in speed every time it collides with the AI paddle.
     //Update the ball position using the global.ballSpeed and global.ballDirection variables
     //Make sure to update the global.lastScore variable to indicate who scored the last point
+
+
+    //paddle collisions
+
+    //ball
+    int ballX1 = global.ballPosition.x;
+    int ballY1 = global.ballPosition.y;
+    int ballX2 = global.ballPosition.x + ballSideLength;
+    int ballY2 = global.ballPosition.y + ballSideLength;
+
+    //player collision
+    int playerX1 = global.playerPaddlePosition.x;
+    int playerY1 = global.playerPaddlePosition.y;
+    int playerX2 = global.playerPaddlePosition.x + paddleWidth;
+    int playerY2 = global.playerPaddlePosition.y + paddleLength;
+    bool playerCollisionY = (playerY1 <= ballY1 && ballY1 <= playerY2) || (playerY1 <= ballY2 && ballY2 <= playerY2);
+    bool playerCollisionX = (playerX1 <= ballX1 && ballX1 <= playerX2) || (playerX1 <= ballX2 && ballX2 <= playerX2);
+    bool playerCollision = playerCollisionX && playerCollisionY;
+
+    //AICollision
+    int AIX1 = global.aiPaddlePosition.x;
+    int AIY1 = global.aiPaddlePosition.y;
+    int AIX2 = global.aiPaddlePosition.x + paddleWidth;
+    int AIY2 = global.aiPaddlePosition.y + paddleLength;
+    bool AICollisionY = (AIY1 <= ballY1 && ballY1 <= AIY2) || (AIY1 <= ballY2 && ballY2 <= AIY2);
+    bool AICollisionX = (AIX1 <= ballX1 && ballX1 <= AIX2) || (AIX1 <= ballX2 && ballX2 <= AIX2);
+    bool AICollision = AICollisionX && AICollisionY;
+
+    if (playerCollision || AICollision) {
+        global.ballDirection.x = global.ballDirection.x * -1.0f;
+    }
+
+
+
+    //wall collision
+    bool pastCeiling = global.ballPosition.y <= 0.0f;
+    bool pastFloor = global.ballPosition.y >= screenHeight;
+    bool pastLWall = global.ballPosition.x <= 0.0f;
+    bool pastRWall = global.ballPosition.x >= screenWidth;
+    if(pastCeiling || pastFloor) {
+        global.ballDirection.y = global.ballDirection.y * -1.0f;
+    }
+    if(pastLWall || pastRWall) {
+        global.ballDirection.x = global.ballDirection.x * -1.0f;
+    }
+    if (pastCeiling) {
+        global.ballPosition.y = 0.0f;
+    }
+    if (pastFloor) {
+        global.ballPosition.y = screenHeight;
+    }
+
+    //goal collision
+    int goalTop = goalPosition - (goalHeight/2);
+    int goalBottom = goalPosition + (goalHeight/2);
+    bool ballInGoalBoundsY1 = ballY1 >= goalTop && ballY1 <= goalBottom ;
+    bool ballInGoalBoundsY2 = ballY2 >= goalTop && ballY2 <= goalBottom ;
+    bool ballInGoalBounds = ballInGoalBoundsY1 && ballInGoalBoundsY2;
+    if (ballInGoalBounds && pastLWall) {
+        global.aiScore +=1;
+        global.lastScore =1;
+        resetBall();
+    }
+    else if (ballInGoalBounds && pastRWall) {
+        global.playerScore +=1;
+        global.lastScore =0;
+        resetBall();
+    } else {
+        //move ball
+        global.ballPosition.x = global.ballPosition.x + (global.ballDirection.x * global.ballSpeed);
+        global.ballPosition.y = global.ballPosition.y + (global.ballDirection.y * global.ballSpeed);
+    }
+
+
+
+
+
+
+
 }
 
 void updateAI(){
@@ -232,6 +313,8 @@ void updateAI(){
 void gameLogic(){
     //The game is over when one of the players reaches 9 points otherwise call updateBall and updateAI
     //Make sure to update the global.gameOver variable
+    updateBall();
+    updateAI();
 }
 
 
