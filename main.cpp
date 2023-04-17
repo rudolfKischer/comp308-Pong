@@ -2,9 +2,6 @@
 // allan.wei@mail.mcgill.ca
 
 #include <GL/glut.h>
-//#include <glad/glad.h>
-#include <GLFW/glfw3.h>
-#include <GLUT/glut.h>
 
 //Represents a point in 2D space
 //x and y are in pixels
