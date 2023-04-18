@@ -49,6 +49,7 @@ const int initialBallSpeed = 30;
 const int scorePosition = screenHeight * 0.9;
 const int goalPosition = screenHeight / 2;
 const int goalHeight = screenHeight / 3;
+const int wallThickness = 30;
 const Color paddleColor = (Color){255, 255, 255};
 const Point playerScorePosition = (Point){screenWidth - paddleOffset, scorePosition};
 const Point aiScorePosition = (Point){paddleOffset - scoreSize, scorePosition};
@@ -156,6 +157,42 @@ void drawScore(){
     //The squares have a side length of scoreSize
 }
 
+void drawWalls(){
+
+    float wallX =  pixelToScreenX(wallThickness);
+    float wallY = pixelToScreenY(wallThickness);
+
+    float bottomH = pixelToScreenX(0);
+    float bottomV = pixelToScreenY(0);
+
+    float screenW = pixelToScreenX(screenWidth);
+    float screenH = pixelToScreenY(screenHeight);
+
+    float goalPost = pixelToScreenY(goalHeight);
+
+    float goalPostBottomStart = pixelToScreenY(screenHeight - goalHeight);
+
+    float goalPostRightStart = pixelToScreenX(screenWidth - wallThickness);
+
+    float bottomWallTop = pixelToScreenY(screenHeight - wallThickness);
+
+    //top wall
+    drawRect(bottomH, bottomV, screenW, wallY, paddleColor);
+    //bottom wall
+    drawRect(bottomH, bottomWallTop, screenW, screenH, paddleColor);
+
+    //right bottom
+    drawRect(goalPostRightStart, goalPostBottomStart, screenW, screenH, paddleColor);
+    //right top
+    drawRect(goalPostRightStart, bottomV, screenW, goalPost, paddleColor);
+
+    //left bottom
+    drawRect(bottomH, goalPostBottomStart, wallX, screenH, paddleColor);
+    //left top
+    drawRect(bottomH, bottomV, wallX, goalPost, paddleColor);
+
+}
+
 void resetBall(){
     //EXAMPLE:
     //This is an example of how your assembly functions should look like.
@@ -259,10 +296,10 @@ void updateBall(){
 
 
     //wall collision
-    bool pastCeiling = global.ballPosition.y <= 0.0f;
-    bool pastFloor = global.ballPosition.y >= screenHeight;
-    bool pastLWall = global.ballPosition.x <= 0.0f;
-    bool pastRWall = global.ballPosition.x >= screenWidth;
+    bool pastCeiling = global.ballPosition.y <= (0 + wallThickness);
+    bool pastFloor = global.ballPosition.y >= (screenHeight - wallThickness);
+    bool pastLWall = global.ballPosition.x <= (0 + wallThickness);
+    bool pastRWall = global.ballPosition.x >= (screenWidth - wallThickness);
     if(pastCeiling || pastFloor) {
         global.ballDirection.y = global.ballDirection.y * -1.0f;
     }
@@ -270,10 +307,10 @@ void updateBall(){
         global.ballDirection.x = global.ballDirection.x * -1.0f;
     }
     if (pastCeiling) {
-        global.ballPosition.y = 0.0f;
+        global.ballPosition.y = 0 + wallThickness;
     }
     if (pastFloor) {
-        global.ballPosition.y = screenHeight;
+        global.ballPosition.y = screenHeight - wallThickness;
     }
 
     //goal collision
@@ -448,6 +485,7 @@ void draw(){
     drawPaddle();
     drawBall();
     drawScore();
+    drawWalls();
 
     glutSwapBuffers();
     glutPostRedisplay();
