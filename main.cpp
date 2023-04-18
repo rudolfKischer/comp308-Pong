@@ -308,6 +308,108 @@ void updateBall(){
 void updateAI(){
     //The AI is very simple, it just follows the ball on the Y axis only if the ball is on the left side of the screen
     //It moves at the speed set by the global.aiSpeed variable
+
+    //C++ version of updateAI
+
+    //check to see if the ball is on the AI side
+
+
+//    int ballX2 = global.ballPosition.x + ballSideLength;
+//
+//
+//
+//
+//    int midPoint = screenWidth / 2;
+//    bool onSide = (ballX2 <= midPoint) ;
+//    if (!onSide) {
+//        return;
+//    }
+//
+//    int ballCenter = global.ballPosition.y + (ballSideLength / 2);
+//    int aiPaddleCenter = global.aiPaddlePosition.y + (paddleLength / 2);
+//    int ballDistance = ballCenter - aiPaddleCenter ;
+//    //subtract the AIplayer position from ball position
+//    //check to see that the ball is more than ball.speed away y direction
+//
+//    // if the result is positive, subtract the speed from the AI position
+//    if (ballDistance > initialBallSpeed) {
+//        global.aiPaddlePosition.y += initialBallSpeed;
+//    }
+//
+//    //if the result is negative, add the speed to the AI position
+//    if (ballDistance < -initialBallSpeed) {
+//        global.aiPaddlePosition.y -= initialBallSpeed;
+//    }
+
+
+    //ASM
+
+    int screenW = screenWidth;
+
+    __asm__ __volatile__(
+
+        //CHECK TO SEE IF BALL IS ON THE CORRECT SIDE
+
+        "mov %6, %%eax\n"//move screen with into eax
+        "shr $1, %%eax\n"//divide screen width by two, register eax
+        "mov %1, %%ebx\n"//move the ball x position into register ebx
+        "add %4, %%ebx\n"//add the ball length to the ball position at ebx
+        "cmp %%ebx, %%eax\n"//cmp screen with ball x position
+        "jle endUpdateAI\n"//jump to end if the ball x position is less than screen width divided by 2
+
+        //CALCULATE BALL CENTER
+
+        "mov %4, %%eax\n"//move ball side length into register eax
+        "shr $1, %%eax\n"//divide it by 2
+        "mov %2, %%ebx\n"//move the ball y position into register ebx
+        "add %%ebx, %%eax\n"//add it to ball side length at eax
+
+        //CALCULATE PADDLE CENTER
+        "mov %3, %%ebx\n"//move paddle length into a register ebx
+        "shr $1, %%ebx\n"//divide paddle length by 2 ebx
+
+        //CALCULATE DISTANCE TO BALL FROM PADDLE
+
+        "sub %%ebx, %%eax\n"//subtract the paddle length from the ball center (eax - ebx)
+        "mov %0, %%ecx\n"//mov paddle y position into register ecx
+        "sub %%ecx, %%eax\n"//subtract the paddle y position from the ball center (eax - ecx)
+
+        //MOVE PADDLE DOWN IF BALL BELOW
+
+        "paddleDown:\n"//paddle down
+        "mov %5, %%ebx\n"//mov initial ball speed into register ebx
+        "cmp %%ebx, %%eax\n"//cmp with ball distance
+        "jle paddleUp\n"//if ball distance less than or equal to init ball speed jump to paddle up (eba <= ebx)
+
+
+        "add %%ebx, %%ecx\n"//add initBallSpeed to position (ecx + ebx)
+        "mov %%ecx, %0\n"//move ecx into paddle position mem
+        "jmp endUpdateAI\n"//jump to end
+
+        //MOVE PADDLE UP IF BALL ABOVE
+
+        "paddleUp:\n"// label paddle up
+        "neg %%ebx\n"//Make initBallSpeed negative
+        "cmp %%ebx, %%eax\n"//compare with ball distance
+        "jge endUpdateAI\n"//if ball distance greater than or equal to -initialBallSpeed than jump to end (eax >= ebx)
+
+        "neg %%ebx\n"
+        "sub %%ebx, %%ecx\n"//subtract initBallSpeed from y position (ecx - ebx)
+        "mov %%ecx, %0\n"//move ecx into paddle position mem
+        "jmp endUpdateAI\n"//jump to end
+
+        "endUpdateAI:\n"//label end update ai
+
+        // %0 -  global.playerPaddlePosition
+        : "=m" (global.aiPaddlePosition.y)
+        // %1 - ballX                    %2 - bally                 $3 - paddleLength   $4 - ballLength       $5 - ballSpeed           $6 - screenwidth
+        : "m" (global.ballPosition.x), "m" (global.ballPosition.y), "r" (paddleLength), "m" (ballSideLength), "m" (initialBallSpeed), "r" (screenW)
+        : "eax", "ebx", "ecx" // Clobbered register
+    );
+
+
+
+
 }
 
 void gameLogic(){
