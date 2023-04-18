@@ -2,4 +2,5 @@
 
 Final project for comp 308 course
 
-Will be cross compiling from Mac m1 ARM to x86 using llvm
+worked remotely on a windows 11 desktop. used mimi to compile and excute with CLion.
+
