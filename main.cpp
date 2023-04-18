@@ -39,7 +39,7 @@ Global global;
 #define screenHeight 1080
 #define paddleOffset 120
 #define scoreSize 22
-const int aiPaddleSpeed = 5;
+const int aiPaddleSpeed = 30;
 const int scoreGap = 50;
 const int ballSpeedupFactor = 1;
 const int paddleWidth = 40;
@@ -49,7 +49,7 @@ const int initialBallSpeed = 30;
 const int scorePosition = screenHeight * 0.9;
 const int goalPosition = screenHeight / 2;
 const int goalHeight = screenHeight / 3;
-const int wallThickness = 30;
+const int wallThickness = 20;
 const Color paddleColor = (Color){255, 255, 255};
 const Point playerScorePosition = (Point){screenWidth - paddleOffset, scorePosition};
 const Point aiScorePosition = (Point){paddleOffset - scoreSize, scorePosition};
@@ -155,6 +155,40 @@ void drawScore(){
     //The number of squares is equal to the score
     //The squares are drawn in a row, with the scoreGap between each square
     //The squares have a side length of scoreSize
+
+    Color playerColor = (Color){0, 255, 0};
+    int y1 =aiScorePosition.y;
+    int y2 =y1 + scoreSize;
+    float y2f =pixelToScreenY(y2);
+    float y1f =pixelToScreenY(y1);
+
+    //draw players score
+    for (int i = 1; i <= global.playerScore; i++ ) {
+
+        //set position
+        int x1 = screenWidth - (wallThickness + (scoreSize + scoreGap) * i);
+        int x2 =x1 + scoreSize;
+        float x1f =pixelToScreenX(x1);
+        float x2f =pixelToScreenX(x2);
+        drawRect(x1f, y1f, x2f, y2f, playerColor);
+    }
+
+    //draw AIs score
+    Color aiColor = (Color){255, 0, 0};
+    for (int i = 1; i <= global.aiScore; i++ ) {
+
+        //set position
+        int x1 = wallThickness + (scoreSize + scoreGap) * i;
+        int x2 =x1 + scoreSize;
+        float x1f =pixelToScreenX(x1);
+        float x2f =pixelToScreenX(x2);
+        drawRect(x1f, y1f, x2f, y2f, aiColor);
+    }
+
+
+
+
+
 }
 
 void drawWalls(){
@@ -320,12 +354,12 @@ void updateBall(){
     bool ballInGoalBoundsY2 = ballY2 >= goalTop && ballY2 <= goalBottom ;
     bool ballInGoalBounds = ballInGoalBoundsY1 && ballInGoalBoundsY2;
     if (ballInGoalBounds && pastLWall) {
-        global.aiScore +=1;
+        global.playerScore +=1;
         global.lastScore =1;
         resetBall();
     }
     else if (ballInGoalBounds && pastRWall) {
-        global.playerScore +=1;
+        global.aiScore +=1;
         global.lastScore =0;
         resetBall();
     } else {
@@ -418,8 +452,8 @@ void updateAI(){
         "cmp %%ebx, %%eax\n"//cmp with ball distance
         "jle paddleUp\n"//if ball distance less than or equal to init ball speed jump to paddle up (eba <= ebx)
 
-
-        "add %%ebx, %%ecx\n"//add initBallSpeed to position (ecx + ebx)
+        "mov %7, %%ebx\n" //move paddle speed into register
+        "add %%ebx, %%ecx\n"//add paddle speed to position (ecx + ebx)
         "mov %%ecx, %0\n"//move ecx into paddle position mem
         "jmp endUpdateAI\n"//jump to end
 
@@ -430,8 +464,9 @@ void updateAI(){
         "cmp %%ebx, %%eax\n"//compare with ball distance
         "jge endUpdateAI\n"//if ball distance greater than or equal to -initialBallSpeed than jump to end (eax >= ebx)
 
-        "neg %%ebx\n"
-        "sub %%ebx, %%ecx\n"//subtract initBallSpeed from y position (ecx - ebx)
+        "mov %7, %%ebx\n" //move paddle speed into register
+//        "neg %%ebx\n"
+        "sub %%ebx, %%ecx\n"//subtract paddleSpeed from y position (ecx - ebx)
         "mov %%ecx, %0\n"//move ecx into paddle position mem
         "jmp endUpdateAI\n"//jump to end
 
@@ -439,8 +474,8 @@ void updateAI(){
 
         // %0 -  global.playerPaddlePosition
         : "=m" (global.aiPaddlePosition.y)
-        // %1 - ballX                    %2 - bally                 $3 - paddleLength   $4 - ballLength       $5 - ballSpeed           $6 - screenwidth
-        : "m" (global.ballPosition.x), "m" (global.ballPosition.y), "r" (paddleLength), "m" (ballSideLength), "m" (initialBallSpeed), "r" (screenW)
+        // %1 - ballX                    %2 - bally                 $3 - paddleLength   $4 - ballLength       $5 - ballSpeed         $6 - screenwidth  $7 - paddleSpeed
+        : "m" (global.ballPosition.x), "m" (global.ballPosition.y), "r" (paddleLength), "m" (ballSideLength), "m" (initialBallSpeed), "r" (screenW), "m" (aiPaddleSpeed)
         : "eax", "ebx", "ecx" // Clobbered register
     );
 
