@@ -2,6 +2,7 @@
 // allan.wei@mail.mcgill.ca
 
 #include <GL/glut.h>
+#include <string>
 
 //Represents a point in 2D space
 //x and y are in pixels
@@ -224,6 +225,41 @@ void drawWalls(){
     drawRect(bottomH, goalPostBottomStart, wallX, screenH, paddleColor);
     //left top
     drawRect(bottomH, bottomV, wallX, goalPost, paddleColor);
+
+}
+
+void drawString(char* message, int x, int y, Color color) {
+    int length = glutBitmapLength(GLUT_BITMAP_TIMES_ROMAN_24, (const unsigned char*)message);
+    float xf = pixelToScreenX(x - (length/2));
+    float yf = pixelToScreenY(y);
+
+    glMatrixMode(GL_MODELVIEW);
+    glLoadIdentity();
+    glColor3ub(color.r , color.g, color.b);
+
+    glRasterPos2f(xf, yf);
+    for (const char* m=message; *m; m++) {
+        glutBitmapCharacter(GLUT_BITMAP_TIMES_ROMAN_24, *m);
+    }
+}
+
+void drawMessageGameOver() {
+    //displays the message for game over
+
+    //draw game over
+
+
+    char* msg1 = "End of Game!";
+    drawString(msg1, screenWidth / 2, screenHeight / 2, (Color){255, 255, 255});
+
+
+    //draw message for restart
+
+    char* msg2 = "Press any key to end.";
+    drawString(msg2, screenWidth / 2, screenHeight / 2 + 60, (Color){255, 255, 0});
+
+    char* msg3 = "Press r to restart.";
+    drawString(msg3, screenWidth / 2, screenHeight / 2 + 90, (Color){255, 255, 0});
 
 }
 
@@ -489,6 +525,10 @@ void gameLogic(){
     //Make sure to update the global.gameOver variable
     updateBall();
     updateAI();
+
+    if (global.playerScore >= 9 || global.aiScore >= 9) {
+        global.gameOver = 1;
+    }
 }
 
 
@@ -521,6 +561,9 @@ void draw(){
     drawBall();
     drawScore();
     drawWalls();
+    if (global.gameOver == 1) {
+        drawMessageGameOver();
+    }
 
     glutSwapBuffers();
     glutPostRedisplay();
