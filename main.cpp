@@ -230,6 +230,25 @@ void drawWalls(){
 
 }
 
+
+void drawMidfieldLine() {
+    int lineSegs = 50;
+    int lineSegSize = 10;
+
+    float xf = pixelToScreenX(screenWidth/2);
+    float x2f = pixelToScreenX(screenWidth/2 + lineSegSize );
+    Color midlineColor = (Color){100,100,255};
+
+
+    for (int i = 0; i< lineSegs ; i++) {
+        int y = i * (screenHeight / lineSegs);
+        int y2 = y + lineSegSize;
+        float yf = pixelToScreenY(y);
+        float y2f = pixelToScreenY(y2);
+        drawRect(xf, yf, x2f, y2f, midlineColor);
+    }
+}
+
 void drawString(char* message, int x, int y, Color color) {
     int length = glutBitmapLength(GLUT_BITMAP_TIMES_ROMAN_24, (const unsigned char*)message);
     float xf = pixelToScreenX(x - (length/2));
@@ -627,6 +646,7 @@ void keyboard(unsigned char key, int x, int y){
 
 void draw(){
     glClear(GL_COLOR_BUFFER_BIT);
+    drawMidfieldLine();
     drawPaddle();
     drawBall();
     drawScore();
