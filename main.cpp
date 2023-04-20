@@ -607,9 +607,6 @@ void keyboard(unsigned char key, int x, int y){
 
         "otherKeyPressed:\n"
 
-                "mov $1, %%eax\n"
-                "mov $0, %%ebx\n"
-                "int $0x80\n"
         "keyboardEnd:\n"//label end of function
 
 
@@ -620,6 +617,10 @@ void keyboard(unsigned char key, int x, int y){
 
         : "eax", "ebx", "ecx" // Clobbered register
     );
+
+    if ( global.gameOver ==1 && key != 'r') {
+        exit(0);
+    }
 
 
 }
