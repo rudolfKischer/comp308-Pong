@@ -66,7 +66,7 @@ void initGlobals(){
     global.playerPaddlePosition = initialPlayerPaddlePosition;
     global.aiPaddlePosition = initialAiPaddlePosition;
     global.playerScore = 0;
-    global.aiScore = 8;
+    global.aiScore = 0;
     global.ballPosition = initialBallPosition;
     global.ballSpeed = initialBallSpeed;
     global.ballDirection = initialBallDirection;
