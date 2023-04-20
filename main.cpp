@@ -56,15 +56,17 @@ const Point playerScorePosition = (Point){screenWidth - paddleOffset, scorePosit
 const Point aiScorePosition = (Point){paddleOffset - scoreSize, scorePosition};
 const Point initialBallPosition = (Point) {screenWidth / 2, screenHeight / 2};
 const Point initialBallDirection = (Point) {1, 1};
+const Point initialPlayerPaddlePosition = (Point){screenWidth - paddleOffset - paddleWidth, (screenHeight / 2) - paddleLength / 2};
+const Point initialAiPaddlePosition = (Point){paddleOffset, (screenHeight / 2) - (paddleLength / 2)};
 
 void initGlobals(){
     //Initializes the global variables
     //They are all under the global struct, and can be access using global.variableName
     //You should not change this function.
-    global.playerPaddlePosition = (Point){screenWidth - paddleOffset - paddleWidth, (screenHeight / 2) - paddleLength / 2};
-    global.aiPaddlePosition = (Point){paddleOffset, (screenHeight / 2) - (paddleLength / 2)};
+    global.playerPaddlePosition = initialPlayerPaddlePosition;
+    global.aiPaddlePosition = initialAiPaddlePosition;
     global.playerScore = 0;
-    global.aiScore = 0;
+    global.aiScore = 8;
     global.ballPosition = initialBallPosition;
     global.ballSpeed = initialBallSpeed;
     global.ballDirection = initialBallDirection;
@@ -523,12 +525,18 @@ void updateAI(){
 void gameLogic(){
     //The game is over when one of the players reaches 9 points otherwise call updateBall and updateAI
     //Make sure to update the global.gameOver variable
-    updateBall();
-    updateAI();
+    if (global.gameOver == 0) {
+
+        updateBall();
+        updateAI();
+    }
 
     if (global.playerScore >= 9 || global.aiScore >= 9) {
         global.gameOver = 1;
     }
+
+
+
 }
 
 
@@ -551,8 +559,69 @@ void mouse(int x, int y){
     );
 }
 
+void resetGame(){
+    global.playerPaddlePosition = initialPlayerPaddlePosition;
+    global.aiPaddlePosition = initialAiPaddlePosition;
+    global.playerScore = 0;
+    global.aiScore = 0;
+    global.gameOver = 0;
+}
+
 void keyboard(unsigned char key, int x, int y){
     //Pressing 'r' resets the game if the game is over
+
+    //check if game is over, if not return
+//    if (global.gameOver == 0) {
+//        return;
+//    }
+//    //if game is over then check the r key was pressed,
+//    if (key == 'r') {
+//        resetGame();
+//    } else {
+//        exit(0);
+//    }
+    //if so then reset the game
+
+    //else then quit the application
+
+    __asm__ __volatile__(
+
+        "mov %4, %%eax\n"//move gameover into eax
+        "cmp $0, %%eax\n"//compare with 0
+        "je keyboardEnd\n"//jump to end if equal
+
+
+        "cmp $0x72, %5\n"//cmp key to r (ascii=0x72)
+        "jne otherKeyPressed\n"//if not equal jmp to other key pressed
+
+        "mov %6, %0\n"//set player position to initial position
+        "mov %7, %1\n"//set aiposition to initial position
+        "mov $0, %2\n"//set player score to 0
+        "mov $0, %3\n"//set ai score to 0
+        "mov $0, %4\n"//set set gameover to 0
+        "jmp keyboardEnd\n"
+
+        //label othekeypressed
+
+        //exit the program
+
+        "otherKeyPressed:\n"
+
+                "mov $1, %%eax\n"
+                "mov $0, %%ebx\n"
+                "int $0x80\n"
+        "keyboardEnd:\n"//label end of function
+
+
+         // %0 - playerpaddle                 %1 - aipaddle                     %2 - playerscore        %3 - aiscore
+        : "=m" (global.playerPaddlePosition), "=m" (global.aiPaddlePosition), "=m" (global.playerScore), "=m" (global.aiScore)
+        // %4 - gameover          %5 - key   %6 - initplayerpaddle               %7 -initaipaddle
+        : "m" (global.gameOver),  "r" (key), "r" (initialPlayerPaddlePosition), "r" (initialAiPaddlePosition)
+
+        : "eax", "ebx", "ecx" // Clobbered register
+    );
+
+
 }
 
 void draw(){
