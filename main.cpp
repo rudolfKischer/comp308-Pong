@@ -3,6 +3,7 @@
 
 #include <GL/glut.h>
 #include <string>
+#include <string.h>
 
 //Represents a point in 2D space
 //x and y are in pixels
@@ -32,6 +33,7 @@ typedef struct Global{
     Point ballDirection;
     int lastScore; //0 = player, 1 = ai
     int gameOver; //0 = false, 1 = true
+    int introScreen; //0 on intro screen, 1 in game
 } Global;
 Global global;
 
@@ -72,6 +74,7 @@ void initGlobals(){
     global.ballDirection = initialBallDirection;
     global.lastScore = 0;
     global.gameOver = 0;
+    global.introScreen = 0;
 }
 
 
@@ -281,6 +284,112 @@ void drawMessageGameOver() {
 
     char* msg3 = "Press r to restart.";
     drawString(msg3, screenWidth / 2, screenHeight / 2 + 90, (Color){255, 255, 0});
+
+}
+
+
+void drawIntroScreen() {
+    glClear(GL_COLOR_BUFFER_BIT | GL_DEPTH_BUFFER_BIT);
+    glEnable(GL_DEPTH_TEST);
+
+    glMatrixMode(GL_PROJECTION);
+    glLoadIdentity();
+    gluPerspective(45, 1, 1, 100);
+
+
+    glMatrixMode(GL_MODELVIEW);
+    glLoadIdentity();
+    gluLookAt(5, 5, 10, 0, 0, 0, 0, 1, 0);
+
+
+
+    // Set up the lighting and material properties
+    GLfloat light_position[] = { 1.0f, 2.0f, -2.0f, 0.0f };
+    glLightfv(GL_LIGHT0, GL_POSITION, light_position);
+    glEnable(GL_LIGHTING);
+    glEnable(GL_LIGHT0);
+    GLfloat mat_ambient[] = { 0.5f, 0.5f, 0.5f, 1.0f };
+    GLfloat mat_diffuse[] = { 0.8f, 0.8f, 0.8f, 1.0f };
+    GLfloat mat_specular[] = { 0.5f, 0.5f, 0.5f, 1.0f };
+    GLfloat mat_shininess[] = { 50.0f };
+    glMaterialfv(GL_FRONT_AND_BACK, GL_AMBIENT, mat_ambient);
+    glMaterialfv(GL_FRONT_AND_BACK, GL_DIFFUSE, mat_diffuse);
+    glMaterialfv(GL_FRONT_AND_BACK, GL_SPECULAR, mat_specular);
+    glMaterialfv(GL_FRONT_AND_BACK, GL_SHININESS, mat_shininess);
+
+    glEnable(GL_CULL_FACE);
+//    glCullFace(GL_BACK);
+
+    // Draw the sphere
+    glPushMatrix();
+    glScalef(0.5,0.5,0.5);
+    glTranslatef(0.0f,  0.0f, -0.0f);
+    glutSolidSphere(1.5, 30, 30);
+    glPopMatrix();
+
+    GLfloat mat_diffuse2[] = { 0.0f, 0.0f, 1.0f, 1.0f };
+    glMaterialfv(GL_FRONT, GL_DIFFUSE, mat_diffuse2);
+
+    // Draw the left rectangular prism
+    glPushMatrix();
+    glTranslatef(-4.0f, 0.0f, 0.0f); // position on the left side of the screen
+    glScalef(0.5f, 2.0f, 0.5f); // stretch into a rectangular prism
+    glColor3f(1.0f, 0.0f, 0.0f); // red color
+    glutSolidCube(2.0f); // draw the cube
+    glPopMatrix();
+
+
+    GLfloat mat_diffuse3[] = { 1.0f, 0.0f, 0.0f, 1.0f };
+    glMaterialfv(GL_FRONT, GL_DIFFUSE, mat_diffuse3);
+
+    // Draw the left rectangular prism
+    glPushMatrix();
+    glTranslatef(3.0f, 0.0f, 0.0f); // position on the left side of the screen
+    glScalef(0.5f, 2.0f, 0.5f); // stretch into a rectangular prism
+    glColor3f(1.0f, 0.0f, 0.0f); // red color
+    glutSolidCube(2.0f); // draw the cube
+    glPopMatrix();
+
+    // Set up text rendering
+    glMatrixMode(GL_PROJECTION);
+    glPushMatrix();
+    glLoadIdentity();
+    gluOrtho2D(0, glutGet(GLUT_WINDOW_WIDTH), 0, glutGet(GLUT_WINDOW_HEIGHT));
+    glMatrixMode(GL_MODELVIEW);
+    glPushMatrix();
+    glLoadIdentity();
+
+//    glScalef(2.0f, 2.0f, 1.0f);
+
+    glDisable(GL_LIGHTING);
+    // Render text
+    glColor3f(1.0f, 1.0f, 1.0f);
+    glRasterPos2f(glutGet(GLUT_WINDOW_WIDTH) / 2 - 200, glutGet(GLUT_WINDOW_HEIGHT) / 2 + 10);
+    const char* text1 = "PONG!";
+    for (int i = 0; i < strlen(text1); i++) {
+        glutBitmapCharacter(GLUT_BITMAP_TIMES_ROMAN_24, text1[i]);
+    }
+
+    glColor3f(1.0f, 1.0f, 0.5f);
+    glRasterPos2f(glutGet(GLUT_WINDOW_WIDTH) / 2 - 200, glutGet(GLUT_WINDOW_HEIGHT) / 2 - 40);
+    const char* text2 = "Press any button to play";
+    for (int i = 0; i < strlen(text2); i++) {
+        glutBitmapCharacter(GLUT_BITMAP_TIMES_ROMAN_24, text2[i]);
+    }
+
+    // Restore the previous matrices
+
+    glMatrixMode(GL_PROJECTION);
+    glLoadIdentity();
+    glMatrixMode(GL_MODELVIEW);
+    glLoadIdentity();
+
+
+    glDisable(GL_CULL_FACE);
+
+    glFlush();
+
+
 
 }
 
@@ -544,6 +653,10 @@ void updateAI(){
 void gameLogic(){
     //The game is over when one of the players reaches 9 points otherwise call updateBall and updateAI
     //Make sure to update the global.gameOver variable
+    if (global.introScreen == 0) {
+        return;
+    }
+
     if (global.gameOver == 0) {
 
         updateBall();
@@ -605,19 +718,22 @@ void keyboard(unsigned char key, int x, int y){
 
     __asm__ __volatile__(
 
-        "mov %4, %%eax\n"//move gameover into eax
+        "mov $1, %4\n"
+
+        "mov %5, %%eax\n"//move gameover into eax
         "cmp $0, %%eax\n"//compare with 0
         "je keyboardEnd\n"//jump to end if equal
 
 
-        "cmp $0x72, %5\n"//cmp key to r (ascii=0x72)
+
+        "cmp $0x72, %6\n"//cmp key to r (ascii=0x72)
         "jne otherKeyPressed\n"//if not equal jmp to other key pressed
 
-        "mov %6, %0\n"//set player position to initial position
-        "mov %7, %1\n"//set aiposition to initial position
+        "mov %7, %0\n"//set player position to initial position
+        "mov %8, %1\n"//set aiposition to initial position
         "mov $0, %2\n"//set player score to 0
         "mov $0, %3\n"//set ai score to 0
-        "mov $0, %4\n"//set set gameover to 0
+        "mov $0, %5\n"//set set gameover to 0
         "jmp keyboardEnd\n"
 
         //label othekeypressed
@@ -626,12 +742,13 @@ void keyboard(unsigned char key, int x, int y){
 
         "otherKeyPressed:\n"
 
+
         "keyboardEnd:\n"//label end of function
 
 
-         // %0 - playerpaddle                 %1 - aipaddle                     %2 - playerscore        %3 - aiscore
-        : "=m" (global.playerPaddlePosition), "=m" (global.aiPaddlePosition), "=m" (global.playerScore), "=m" (global.aiScore)
-        // %4 - gameover          %5 - key   %6 - initplayerpaddle               %7 -initaipaddle
+         // %0 - playerpaddle                 %1 - aipaddle                     %2 - playerscore        %3 - aiscore            %4-introscreen
+        : "=m" (global.playerPaddlePosition), "=m" (global.aiPaddlePosition), "=m" (global.playerScore), "=m" (global.aiScore), "=m" (global.introScreen)
+        // %5 - gameover          %6 - key   %7 - initplayerpaddle               %8 -initaipaddle
         : "m" (global.gameOver),  "r" (key), "r" (initialPlayerPaddlePosition), "r" (initialAiPaddlePosition)
 
         : "eax", "ebx", "ecx" // Clobbered register
@@ -646,6 +763,14 @@ void keyboard(unsigned char key, int x, int y){
 
 void draw(){
     glClear(GL_COLOR_BUFFER_BIT);
+//    printf("%d", global.aiScore);
+    if (global.introScreen == 0) {
+        drawIntroScreen();
+        glutSwapBuffers();
+        glutPostRedisplay();
+        return;
+    }
+
     drawMidfieldLine();
     drawPaddle();
     drawBall();
